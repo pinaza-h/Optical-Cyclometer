@@ -1,6 +1,6 @@
 # OptiVelo: Optical Bicycle Speedometer & Tachometer
 
-OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odometer built on an ESP32 microcontroller. Instead of relying on fragile mechanical reed switches or expensive dual-microcontroller wireless links (ANT+/BLE), OptiVelo utilizes a discrete 4-pin **TCRT5000 reflective infrared sensor** paired with micro-prismatic retroreflective wheel markers (Aluminium Tape) to measure real-time kinematics with microsecond precision.
+OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odometer built on an ESP32 microcontroller with a live I2C OLED dashboard. Instead of relying on fragile mechanical reed switches or expensive dual-microcontroller wireless links (ANT+/BLE), OptiVelo utilizes a discrete 4-pin **TCRT5000 reflective infrared sensor** paired with micro-prismatic retroreflective wheel markers (Aluminium Tape) to measure real-time kinematics with microsecond precision.
 
 ---
 
@@ -14,8 +14,33 @@ OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odomete
   - Real-time linear velocity ($v = \frac{\Delta s}{\Delta t}$) in km/h and m/s.
   - Rotational speed (RPM) and angular velocity ($\omega$) in rad/s.
   - Total cumulative travel distance (odometer) in meters and kilometers.
+- **High-Visibility I2C OLED Display (128x64 SSD1306)**:
+  - Inverted header with live `[RIDING]` / `[STOPPED]` state indication.
+  - Large speedometer readout in km/h (with m/s secondary readout).
+  - Cadence tachometer (RPM) and trip distance (km).
+  - Dynamic analog-style speed gauge progress bar ($0\text{ to }50\text{ km/h}$).
 - **Ambient Sunlight Hardening**: Dedicated optical collimation shrouding and potentiometer threshold tuning overcome daylight infrared saturation.
 - **Single-Microcontroller Architecture**: Direct wired routing eliminates battery overhead, pairing delay, and RF interference.
+
+---
+
+## OLED Dashboard Interface
+
+The system renders a high-contrast dashboard on a 0.96″ or 1.3″ I2C OLED display (SSD1306 / SH1106) using the **U8g2** library:
+
+```text
+┌──────────────────────────────────────────────┐
+│ OPTIVELO                   [RIDING] / [STOP] │  <-- Inverted Status Bar
+├──────────────────────────────────────────────┤
+│                                              │
+│   24.5              km/h                     │  <-- Large High-Contrast Speed
+│                     6.8m/s                   │
+├──────────────────────────────────────────────┤
+│  RPM: 195           DST: 1.42km              │  <-- Cadence & Trip Odometer
+├──────────────────────────────────────────────┤
+│ [████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░] │  <-- Speed Gauge Bar (0-50 km/h)
+└──────────────────────────────────────────────┘
+```
 
 ---
 
@@ -57,6 +82,8 @@ $$s_{\text{km}} = \frac{s_{\text{total}}}{1000}$$
 
 ## Hardware Wiring & Pinout
 
+### 1. TCRT5000 Reflective Sensor (4-Pin Module)
+
 The discrete 4-pin TCRT5000 module incorporates an onboard LM393 voltage comparator and sensitivity potentiometer.
 
 > [!IMPORTANT]
@@ -68,6 +95,15 @@ The discrete 4-pin TCRT5000 module incorporates an onboard LM393 voltage compara
 | **GND**      | **GND**     | Common ground                                          |
 | **D0**       | **GPIO 4**  | Digital comparator output (Interrupt input, `FALLING`) |
 | **A0**       | **GPIO 34** | Optional analog output (Ambient daylight diagnostics)  |
+
+### 2. I2C OLED Display (4-Pin: VCC, GND, SCK, SDA)
+
+| OLED Pin | ESP32 GPIO  | Description                              |
+| :------- | :---------- | :--------------------------------------- |
+| **VCC**  | **3.3V**    | Power rail (or 5V / VIN for 5V modules)  |
+| **GND**  | **GND**     | System ground                            |
+| **SCK**  | **GPIO 22** | I2C Serial Clock (SCL)                   |
+| **SDA**  | **GPIO 21** | I2C Serial Data (SDA)                    |
 
 ---
 
@@ -83,7 +119,8 @@ flowchart TD
     E -- "Yes (Valid Pulse)" --> G["Record isrPeriodUs<br/>Increment isrTotalPulses<br/>Update isrLastPulseTimeUs"]
     G --> H["FreeRTOS Spinlock Snapshot (Main Loop)"]
     H --> I["Compute Speed, RPM & Distance"]
-    I --> J["Output Telemetry via Serial"]
+    I --> J["Render OLED Dashboard (10 Hz)"]
+    I --> K["Output Telemetry via Serial (4 Hz)"]
 ```
 
 ### Debounce Interval Selection
@@ -108,6 +145,16 @@ OptiVelo resolves this with a 3-layer mitigation approach:
 3. **Threshold Tuning via Onboard Potentiometer**:
    - In direct sunlight without the reflective marker in front of the sensor, adjust the multi-turn trimpot until the module's indicator LED just turns off.
    - Verify the LED reliably turns on when the reflective marker sweeps past at a working distance of $5\text{--}12\text{ mm}$.
+
+---
+
+## Dependencies & Software Setup
+
+1. Open the **Arduino IDE**.
+2. Go to **Sketch > Include Library > Manage Libraries...**
+3. Search for **U8g2** by `olikraus` and click **Install**.
+4. Select board **ESP32 Dev Module** (or your specific ESP32 variant).
+5. Compile and flash [SPEEDOMETER.ino](file:///c:/DEV%20AND%20CODING%20C/Cyclometer/Optical-Cyclometer/SPEEDOMETER.ino) at `115200` baud.
 
 ---
 
