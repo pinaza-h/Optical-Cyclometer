@@ -1,4 +1,4 @@
-Optical Bicycle Speedometer & Tachometer
+**Optical Bicycle Speedometer & Tachometer**
 
 OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odometer built on an ESP32 microcontroller with a live I2C OLED dashboard. Instead of relying on fragile mechanical reed switches or expensive dual-microcontroller wireless links (ANT+/BLE), OptiVelo utilizes a discrete 4-pin **TCRT5000 reflective infrared sensor** paired with micro-prismatic retroreflective wheel markers (Aluminium Tape) to measure real-time kinematics with microsecond precision.
 
