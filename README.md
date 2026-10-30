@@ -1,6 +1,6 @@
-# OptiVelo: ESP32 Optical Bicycle Speedometer & Tachometer
+# OptiVelo: Optical Bicycle Speedometer & Tachometer
 
-OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odometer built on an ESP32 microcontroller. Instead of relying on fragile mechanical reed switches or expensive dual-microcontroller wireless links (ANT+/BLE), OptiVelo utilizes a discrete 4-pin **TCRT5000 reflective infrared sensor** paired with micro-prismatic retroreflective wheel markers to measure real-time kinematics with microsecond precision.
+OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odometer built on an ESP32 microcontroller. Instead of relying on fragile mechanical reed switches or expensive dual-microcontroller wireless links (ANT+/BLE), OptiVelo utilizes a discrete 4-pin **TCRT5000 reflective infrared sensor** paired with micro-prismatic retroreflective wheel markers (Aluminium Tape) to measure real-time kinematics with microsecond precision.
 
 ---
 
@@ -22,6 +22,7 @@ OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odomete
 ## Mathematical Formulation
 
 ### 1. Linear Speed
+
 Linear velocity is derived from the wheel circumference and the time interval between consecutive marker pulses:
 
 $$\Delta s = \frac{C_{\text{wheel}}}{P}$$
@@ -30,12 +31,14 @@ $$v = \frac{\Delta s}{\Delta t} = \frac{\Delta s}{\Delta t_{\mu s} \times 10^{-6
 
 $$v_{\text{km/h}} = v \times 3.6$$
 
-*Where:*
+_Where:_
+
 - $C_{\text{wheel}}$: Wheel circumference in meters (e.g., $2.070\text{ m}$).
 - $P$: Number of reflective markers per revolution (default: $1$).
 - $\Delta t$: Elapsed time between consecutive pulses in seconds ($\Delta t_{\mu s} \times 10^{-6}$).
 
 ### 2. Rotational Velocity (Tachometer)
+
 Rotational speed in revolutions per minute (RPM) and angular velocity ($\omega$):
 
 $$\text{RPM} = \frac{60}{P \cdot \Delta t} = \frac{60 \times 10^6}{P \cdot \Delta t_{\mu s}}$$
@@ -43,6 +46,7 @@ $$\text{RPM} = \frac{60}{P \cdot \Delta t} = \frac{60 \times 10^6}{P \cdot \Delt
 $$\omega = \frac{2\pi \cdot \text{RPM}}{60} \quad [\text{rad/s}]$$
 
 ### 3. Cumulative Travel Distance (Odometer)
+
 Total distance traveled calculated by pulse integration:
 
 $$s_{\text{total}} = N_{\text{pulses}} \times \left(\frac{C_{\text{wheel}}}{P}\right) \quad [\text{m}]$$
@@ -58,12 +62,12 @@ The discrete 4-pin TCRT5000 module incorporates an onboard LM393 voltage compara
 > [!IMPORTANT]
 > Always power the TCRT5000 module from the **3.3V rail** on the ESP32. Powering the module from 5V causes the `D0` digital output to output 5V logic, which can damage the ESP32 GPIO pins.
 
-| TCRT5000 Pin | ESP32 GPIO | Description |
-| :--- | :--- | :--- |
-| **VCC** | **3.3V** | Power supply (3.3V logic level compliance) |
-| **GND** | **GND** | Common ground |
-| **D0** | **GPIO 4** | Digital comparator output (Interrupt input, `FALLING`) |
-| **A0** | **GPIO 34** | Optional analog output (Ambient daylight diagnostics) |
+| TCRT5000 Pin | ESP32 GPIO  | Description                                            |
+| :----------- | :---------- | :----------------------------------------------------- |
+| **VCC**      | **3.3V**    | Power supply (3.3V logic level compliance)             |
+| **GND**      | **GND**     | Common ground                                          |
+| **D0**       | **GPIO 4**  | Digital comparator output (Interrupt input, `FALLING`) |
+| **A0**       | **GPIO 34** | Optional analog output (Ambient daylight diagnostics)  |
 
 ---
 
@@ -83,6 +87,7 @@ flowchart TD
 ```
 
 ### Debounce Interval Selection
+
 At a maximum realistic cycling sprint speed of $100\text{ km/h}$ ($27.78\text{ m/s}$) on a $2.07\text{ m}$ wheel:
 $$T_{\text{min}} = \frac{2.07\text{ m}}{27.78\text{ m/s}} \approx 74.5\text{ ms}$$
 
@@ -112,7 +117,7 @@ Edit the parameters in [SPEEDOMETER.ino](file:///c:/DEV%20AND%20CODING%20C/Cyclo
 
 ```cpp
 // Wheel rollout circumference in meters
-constexpr float WHEEL_CIRCUMFERENCE_M = 2.070f; 
+constexpr float WHEEL_CIRCUMFERENCE_M = 2.070f;
 
 // Marker count per wheel rotation (standard = 1)
 constexpr uint8_t PULSES_PER_REV = 1;
@@ -126,13 +131,12 @@ constexpr uint32_t STOP_TIMEOUT_US = 2500000;
 
 ### Wheel Circumference Lookup Table
 
-| Tire Size | ISO / ETRTO | Circumference ($C$) |
-| :--- | :--- | :--- |
-| **$700 \times 23\text{C}$** | $23-622$ | $2.096\text{ m}$ |
-| **$700 \times 25\text{C}$** | $25-622$ | $2.105\text{ m}$ |
-| **$700 \times 28\text{C}$** | $28-622$ | $2.136\text{ m}$ |
-| **$26 \times 1.95$** | $50-559$ | $2.050\text{ m}$ |
-| **$26 \times 2.0$** | $52-559$ | $2.070\text{ m}$ |
-| **$27.5 \times 2.2$** | $56-584$ | $2.180\text{ m}$ |
-| **$29 \times 2.25$** | $57-622$ | $2.288\text{ m}$ |
-
+| Tire Size                   | ISO / ETRTO | Circumference ($C$) |
+| :-------------------------- | :---------- | :------------------ |
+| **$700 \times 23\text{C}$** | $23-622$    | $2.096\text{ m}$    |
+| **$700 \times 25\text{C}$** | $25-622$    | $2.105\text{ m}$    |
+| **$700 \times 28\text{C}$** | $28-622$    | $2.136\text{ m}$    |
+| **$26 \times 1.95$**        | $50-559$    | $2.050\text{ m}$    |
+| **$26 \times 2.0$**         | $52-559$    | $2.070\text{ m}$    |
+| **$27.5 \times 2.2$**       | $56-584$    | $2.180\text{ m}$    |
+| **$29 \times 2.25$**        | $57-622$    | $2.288\text{ m}$    |
