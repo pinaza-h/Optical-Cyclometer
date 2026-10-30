@@ -1,4 +1,4 @@
-**Optical Bicycle Speedometer & Tachometer**
+# Optical Bicycle Speedometer & Tachometer
 
 OptiVelo is a low-cost, non-contact bicycle speedometer, tachometer, and odometer built on an ESP32 microcontroller with a live I2C OLED dashboard. Instead of relying on fragile mechanical reed switches or expensive dual-microcontroller wireless links (ANT+/BLE), OptiVelo utilizes a discrete 4-pin **TCRT5000 reflective infrared sensor** paired with micro-prismatic retroreflective wheel markers (Aluminium Tape) to measure real-time kinematics with microsecond precision.
 
@@ -98,12 +98,12 @@ The discrete 4-pin TCRT5000 module incorporates an onboard LM393 voltage compara
 
 ### 2. I2C OLED Display (4-Pin: VCC, GND, SCK, SDA)
 
-| OLED Pin | ESP32 GPIO  | Description                              |
-| :------- | :---------- | :--------------------------------------- |
-| **VCC**  | **3.3V**    | Power rail (or 5V / VIN for 5V modules)  |
-| **GND**  | **GND**     | System ground                            |
-| **SCK**  | **GPIO 22** | I2C Serial Clock (SCL)                   |
-| **SDA**  | **GPIO 21** | I2C Serial Data (SDA)                    |
+| OLED Pin | ESP32 GPIO  | Description                             |
+| :------- | :---------- | :-------------------------------------- |
+| **VCC**  | **3.3V**    | Power rail (or 5V / VIN for 5V modules) |
+| **GND**  | **GND**     | System ground                           |
+| **SCK**  | **GPIO 22** | I2C Serial Clock (SCL)                  |
+| **SDA**  | **GPIO 21** | I2C Serial Data (SDA)                   |
 
 ---
 
